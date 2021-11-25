@@ -18,11 +18,11 @@ const userSchamer = new mongoose.Schema({
     },
 });
 
-//fire a function after doc saved to db
-userSchamer.post('save', function(doc, next) {
-    console.log('new user was created & saved', doc);
-    next()
-})
+// //fire a function after doc saved to db
+// userSchamer.post('save', function(doc, next) {
+//     console.log('new user was created & saved', doc);
+//     next()
+// })
 
 //fire a function before doc saved to db
 userSchamer.pre('save', async function(next){
@@ -30,6 +30,19 @@ userSchamer.pre('save', async function(next){
     this.password = await bcrypt.hash(this.password, salt)
     next();
 })
+
+//static method to login user
+userSchamer.statics.login = async function(email, password){
+    const user = await this.findOne({ email })
+    if(user){
+        const auth = await bcrypt.compare(password, user.password)
+        if(auth){
+            return user;
+        }
+        throw Error("incorrect password")
+    }
+    throw Error('incorrect email')
+}
 
 const User = mongoose.model('user', userSchamer);
 module.exports = User;
